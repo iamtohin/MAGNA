@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AVG Interface - E-Kanban Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+            background-color: #f8f9fa;
+        }
+        .status-pending {
+            background-color: #fff3cd;
+        }
+        .avg-interface {
+            background-color: #212529;
+            color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .signal-card {
+            margin-bottom: 20px;
+            border-left: 5px solid #ffc107;
+        }
+        .control-panel {
+            background-color: #343a40;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="mb-4">
+            <h1 class="text-center">AVG Interface</h1>
+            <div class="text-center">
+                <a href="{{ url_for('index') }}" class="btn btn-primary">Dashboard</a>
+                <a href="{{ url_for('avg_interface') }}" class="btn btn-secondary">AVG Interface</a>
+            </div>
+        </header>
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="alert alert-info" role="alert">
+            {% for message in messages %}
+            {{ message }}
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="avg-interface">
+                    <h2>Automated Guided Vehicle Control Panel</h2>
+                    <p>Monitor and process empty kanban signals</p>
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h3>Pending Empty Signals</h3>
+                            
+                            {% if empty_signals %}
+                                {% for signal in empty_signals %}
+                                <div class="card signal-card">
+                                    <div class="card-body">
+                                        <h4 class="card-title">Signal ID: {{ signal.signal_id[:8] }}...</h4>
+                                        <p class="card-text">
+                                            <strong>Item:</strong> {{ signal.item_name }} ({{ signal.item_id }})<br>
+                                            <strong>Timestamp:</strong> {{ signal.timestamp[:16] }}<br>
+                                            <strong>Status:</strong> <span class="badge bg-warning text-dark">{{ signal.status }}</span>
+                                        </p>
+                                        
+                                        <form action="{{ url_for('process_empty_signal') }}" method="post">
+                                            <input type="hidden" name="signal_id" value="{{ signal.signal_id }}">
+                                            <input type="hidden" name="item_id" value="{{ signal.item_id }}">
+                                            
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <label for="quantity" class="form-label">Quantity to Pick</label>
+                                                    <input type="number" class="form-control" id="quantity" name="quantity" value="50" min="1" required>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label for="destination" class="form-label">Delivery Destination</label>
+                                                    <input type="text" class="form-control" id="destination" name="destination" value="Production Line A" required>
+                                                </div>
+                                            </div>
+                                            
+                                            <button type="submit" class="btn btn-warning">Process Signal & Create Delivery Task</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="alert alert-info">
+                                    No pending empty signals at this time.
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="control-panel">
+                                <h3>AVG Status</h3>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span>System Status:</span>
+                                        <span class="badge bg-success">Online</span>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Battery Level:</span>
+                                        <div class="progress" style="width: 100px;">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: 85%;" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100">85%</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Current Tasks:</span>
+                                        <span class="badge bg-primary">{{ empty_signals|length }}</span>
+                                    </div>
+                                </div>
+                                
+                                <h4 class="mt-4">Available Storage Locations</h4>
+                                <ul class="list-group">
+                                    {% for item in inventory %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center bg-dark text-light">
+                                        {{ item.item_name }}
+                                        <span class="badge bg-primary rounded-pill">{{ item.location }}</span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                
+                                <div class="mt-4">
+                                    <h4>System Controls</h4>
+                                    <button class="btn btn-danger mb-2 w-100">Emergency Stop</button>
+                                    <button class="btn btn-warning mb-2 w-100">Return to Charging Station</button>
+                                    <button class="btn btn-info w-100">Run Diagnostic</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-refresh the page every 30 seconds
+        setTimeout(function() {
+            location.reload();
+        }, 30000);
+    </script>
+</body>
+</html>

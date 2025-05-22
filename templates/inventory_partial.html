@@ -1,0 +1,28 @@
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Item ID</th>
+            <th>Name</th>
+            <th>Location</th>
+            <th>Quantity</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in inventory %}
+        <tr {% if item.is_low_stock %}class="low-quantity"{% endif %}>
+            <td>{{ item.item_id }}</td>
+            <td>{{ item.item_name }}</td>
+            <td>{{ item.location }}</td>
+            <td>{{ item.quantity }} {% if item.is_low_stock %}(Low){% endif %}</td>
+            <td>
+                <form action="{{ url_for('create_empty_signal') }}" method="post" class="d-inline">
+                    <input type="hidden" name="item_id" value="{{ item.item_id }}">
+                    <button type="submit" class="btn btn-sm btn-warning">Send Empty Signal</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+s
